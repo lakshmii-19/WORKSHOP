@@ -1,0 +1,140 @@
+{% extends "base.html" %}
+
+{% block title %}{{ item.name }} | Details & Matches{% endblock %}
+
+{% block content %}
+<div class="breadcrumb">
+    <a href="{{ url_for('index') }}">Directory</a> &gt; <span>Item #{{ item.id }}</span>
+</div>
+
+<div class="detail-layout">
+    <!-- Left Column: Item Profile -->
+    <div class="item-main-card">
+        <div class="item-banner-header banner-{{ item.item_type }}">
+            <div class="banner-top">
+                <span class="badge badge-type badge-{{ item.item_type }}">
+                    {{ item.item_type|upper }} REPORT
+                </span>
+                <span class="badge badge-status badge-status-{{ item.status|lower }}">
+                    {{ item.status }}
+                </span>
+            </div>
+            <h1 class="item-detail-title">{{ item.name }}</h1>
+            <p class="item-timestamp">Reported on {{ item.created_at }}</p>
+        </div>
+
+        <div class="item-details-body">
+            <div class="attribute-grid">
+                <div class="attr-box">
+                    <span class="attr-label">🏷️ Category</span>
+                    <span class="attr-value">{{ item.category }}</span>
+                </div>
+                <div class="attr-box">
+                    <span class="attr-label">🎨 Colour</span>
+                    <span class="attr-value">{{ item.colour }}</span>
+                </div>
+                <div class="attr-box">
+                    <span class="attr-label">📍 Location</span>
+                    <span class="attr-value">{{ item.location }}</span>
+                </div>
+                <div class="attr-box">
+                    <span class="attr-label">📞 Contact / Custody</span>
+                    <span class="attr-value">{{ item.contact_info or 'Not provided' }}</span>
+                </div>
+            </div>
+
+            <div class="desc-box">
+                <h4>Description & Distinguishing Features</h4>
+                <p>{{ item.description }}</p>
+            </div>
+
+            <div class="status-action-box">
+                <div class="status-info">
+                    <h4>Current Item Status: <strong>{{ item.status }}</strong></h4>
+                    <p>
+                        {% if item.status == 'Active' %}
+                            Item is currently actively being searched or waiting for its owner.
+                        {% else %}
+                            This item has been successfully reunited with its rightful owner!
+                        {% endif %}
+                    </p>
+                </div>
+                <form method="POST" action="{{ url_for('update_status', item_id=item.id) }}">
+                    {% if item.status == 'Active' %}
+                        <input type="hidden" name="status" value="Returned">
+                        <button type="submit" class="btn btn-success" id="btn-mark-returned">
+                            ✓ Mark as Returned to Owner
+                        </button>
+                    {% else %}
+                        <input type="hidden" name="status" value="Active">
+                        <button type="submit" class="btn btn-outline-secondary" id="btn-mark-active">
+                            ↺ Re-open as Active
+                        </button>
+                    {% endif %}
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right Column: Smart Matches -->
+    <div class="matches-sidebar">
+        <div class="sidebar-header">
+            <h3>✨ Smart Similarity Matches</h3>
+            <p>Calculated using Scikit-Learn TF-IDF vectorization & Cosine Similarity across all active {{ opposite_type }} items.</p>
+        </div>
+
+        {% if matches %}
+            <div class="matches-list">
+                {% for match in matches %}
+                    <div class="match-card">
+                        <div class="match-score-bar-wrapper">
+                            <div class="score-header">
+                                <span class="score-label">Match Confidence</span>
+                                <span class="score-percentage {% if match.match_percentage >= 50 %}score-high{% elif match.match_percentage >= 30 %}score-mid{% else %}score-low{% endif %}">
+                                    {{ match.match_percentage }}%
+                                </span>
+                            </div>
+                            <div class="progress-track">
+                                <div class="progress-fill {% if match.match_percentage >= 50 %}fill-high{% elif match.match_percentage >= 30 %}fill-mid{% else %}fill-low{% endif %}"
+                                     style="width: {{ match.match_percentage }}%;"></div>
+                            </div>
+                        </div>
+
+                        <div class="match-content">
+                            <div class="match-item-title">
+                                <a href="{{ url_for('item_detail', item_id=match.id) }}">
+                                    {{ match.name }}
+                                </a>
+                            </div>
+                            <div class="match-tags">
+                                <span class="tag">🏷️ {{ match.category }}</span>
+                                <span class="tag">🎨 {{ match.colour }}</span>
+                                <span class="tag">📍 {{ match.location }}</span>
+                            </div>
+                            <p class="match-snippet">{{ match.description }}</p>
+
+                            {% if match.contact_info %}
+                                <div class="match-contact">
+                                    <strong>Contact:</strong> {{ match.contact_info }}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="match-actions">
+                            <a href="{{ url_for('item_detail', item_id=match.id) }}" class="btn btn-sm btn-outline">
+                                View Opposite Report &rarr;
+                            </a>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="empty-matches">
+                <div class="empty-icon">🔎</div>
+                <h4>No High-Confidence Matches Found Yet</h4>
+                <p>No active {{ opposite_type }} reports currently match this item's characteristics. When new reports are logged, our algorithm will automatically evaluate them.</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

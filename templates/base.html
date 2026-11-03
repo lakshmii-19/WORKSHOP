@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Smart Campus Lost & Found Matcher{% endblock %}</title>
+    <!-- Google Fonts for Modern Typography -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <header class="navbar">
+        <div class="nav-container">
+            <a href="{{ url_for('index') }}" class="brand-logo">
+                <span class="logo-icon">🔍</span>
+                <span class="brand-text">
+                    <span class="brand-primary">Campus</span><span class="brand-accent">Finder</span>
+                </span>
+                <span class="badge-ai">Smart Matcher</span>
+            </a>
+
+            <nav class="nav-links">
+                <a href="{{ url_for('index') }}" class="nav-link {% if request.endpoint == 'index' %}active{% endif %}">
+                    Dashboard
+                </a>
+                <a href="{{ url_for('smart_matches_dashboard') }}" class="nav-link {% if request.endpoint == 'smart_matches_dashboard' %}active{% endif %}">
+                    ✨ Smart Matches
+                </a>
+                <div class="nav-actions">
+                    <a href="{{ url_for('report_item', item_type='lost') }}" class="btn btn-lost">
+                        <span>+</span> Report Lost
+                    </a>
+                    <a href="{{ url_for('report_item', item_type='found') }}" class="btn btn-found">
+                        <span>+</span> Report Found
+                    </a>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <main class="main-content">
+        <div class="container">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    <div class="alerts-container">
+                        {% for category, message in messages %}
+                            <div class="alert alert-{{ category }}">
+                                <span class="alert-icon">
+                                    {% if category == 'success' %}✓{% else %}⚠️{% endif %}
+                                </span>
+                                <span class="alert-text">{{ message }}</span>
+                                <button type="button" class="alert-close" onclick="this.parentElement.remove()">×</button>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            {% endwith %}
+
+            {% block content %}{% endblock %}
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="container footer-content">
+            <div class="footer-brand">
+                <h3>CampusFinder AI</h3>
+                <p>AI-driven TF-IDF & Cosine Similarity algorithm reuniting students with lost belongings across campus.</p>
+            </div>
+            <div class="footer-links">
+                <h4>Quick Actions</h4>
+                <ul>
+                    <li><a href="{{ url_for('report_item', item_type='lost') }}">Report a Lost Item</a></li>
+                    <li><a href="{{ url_for('report_item', item_type='found') }}">Report a Found Item</a></li>
+                    <li><a href="{{ url_for('smart_matches_dashboard') }}">Explore Campus Matches</a></li>
+                </ul>
+            </div>
+            <div class="footer-note">
+                <p>&copy; 2025 Smart Campus Lost & Found Matcher. No external AI APIs required. Fast, private, on-device NLP.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>
